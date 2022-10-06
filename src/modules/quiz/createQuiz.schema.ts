@@ -3,7 +3,9 @@ import { Document } from 'mongoose';
 
 export const QUIZES = 'quizes';
 
-@Schema()
+@Schema({
+  timestamps: true,
+})
 export class Quiz {
   @Prop({ required: true })
   title: string;

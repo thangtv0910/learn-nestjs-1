@@ -1,6 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateQuizDto } from './createQuiz.dto';
 import { Quiz, QuizDocument, QUIZES } from './createQuiz.schema';
 
@@ -15,7 +19,17 @@ export class QuizService {
   }
 
   async getQuiz(id: string): Promise<Quiz> {
-    return await this.createQuizModel.findOne({ _id: id }).exec();
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Quiz with ${id} is not valid!`);
+    }
+
+    const getQuiz = await this.createQuizModel.findOne({ _id: id }).exec();
+
+    if (!getQuiz) {
+      throw new NotFoundException(`Quiz with ${id} not found`);
+    }
+
+    return getQuiz;
   }
 
   async createQuiz(createQuizDto: CreateQuizDto): Promise<Quiz> {
@@ -24,10 +38,37 @@ export class QuizService {
   }
 
   async updateQuiz(id: string, updateQuizDto: CreateQuizDto): Promise<Quiz> {
-    return await this.createQuizModel.findByIdAndUpdate(id, updateQuizDto);
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Quiz with ${id} is not valid!`);
+    }
+
+    const updateQuiz = await this.createQuizModel.findByIdAndUpdate(
+      id,
+      updateQuizDto,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
+
+    if (!updateQuiz) {
+      throw new NotFoundException(`Quiz with ${id} not found`);
+    }
+
+    return updateQuiz;
   }
 
   async deleteQuiz(id: string): Promise<Quiz> {
-    return await this.createQuizModel.findByIdAndRemove(id);
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(`Quiz with ${id} is not valid!`);
+    }
+
+    const deleteQuiz = await this.createQuizModel.findByIdAndRemove(id);
+
+    if (!deleteQuiz) {
+      throw new NotFoundException(`Quiz with ${id} not found`);
+    }
+
+    return deleteQuiz;
   }
 }
